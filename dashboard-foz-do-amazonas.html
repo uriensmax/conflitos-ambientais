@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><script src="https://myhub.ia.br/canvas-vendor/tailwind.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Margem Equatorial / Foz do Amazonas — Dashboard</title>
+<style>
+:root{--bg:#06131d;--p:#0d2132;--p2:#143149;--line:#1f4560;--tx:#e8f2f6;--mut:#8fa9b8;--ac:#ff9f43;--te:#28c4c9;--rd:#ef5b5b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:Segoe UI,system-ui,sans-serif;line-height:1.5}
+a{color:var(--ac)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 16px}
+header.top{position:sticky;top:0;z-index:50;background:rgba(6,19,29,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav{display:flex;gap:6px;overflow-x:auto;padding:10px 0;align-items:center}
+.brand{font-weight:700;margin-right:12px;white-space:nowrap;color:var(--ac)}
+.nav button{background:transparent;border:1px solid transparent;color:var(--mut);padding:8px 14px;border-radius:999px;cursor:pointer;font-size:14px;white-space:nowrap}
+.nav button:hover{color:var(--tx)}
+.nav button.on{background:var(--p2);color:var(--tx);border-color:var(--line)}
+.tab[hidden]{display:none}
+.hero{position:relative;border-radius:18px;overflow:hidden;margin:20px 0;min-height:320px;display:flex;align-items:flex-end;background:radial-gradient(circle at 80% 20%,rgba(255,159,67,.35),transparent 40%),radial-gradient(circle at 15% 90%,rgba(40,196,201,.35),transparent 45%),linear-gradient(160deg,#0b3a5a,#06131d 75%)}
+.hero .deco{position:absolute;right:24px;top:18px;font-size:64px;opacity:.9;letter-spacing:10px}
+.hero svg{position:absolute;left:0;right:0;bottom:0;width:100%;height:120px;opacity:.35}
+.hero .in{position:relative;z-index:1;padding:28px}
+.hero h1{margin:0 0 6px;font-size:clamp(26px,4vw,42px)}
+.hero p{margin:0;max-width:780px;color:#d3e5ec}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;background:rgba(255,159,67,.15);color:var(--ac);border:1px solid rgba(255,159,67,.4);margin-bottom:8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px}
+.card{background:var(--p);border:1px solid var(--line);border-radius:14px;padding:16px}
+.kpi b{display:block;font-size:26px;color:var(--ac)}
+.kpi span{color:var(--mut);font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+@media(max-width:800px){.grid2{grid-template-columns:1fr}}
+h2{margin:8px 0 12px;font-size:22px}
+h3{margin:0 0 8px;font-size:16px}
+ul.l{margin:0;padding-left:18px;color:#cfe0e8}ul.l li{margin:4px 0}
+.bar{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px;cursor:pointer}
+.bar .n{width:150px;color:var(--mut)}.bar .t{flex:1;background:var(--p2);border-radius:6px;height:14px;overflow:hidden}.bar .t i{display:block;height:100%;border-radius:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip{background:var(--p);border:1px solid var(--line);color:var(--mut);padding:6px 12px;border-radius:999px;cursor:pointer;font-size:13px}
+.chip.on{background:var(--ac);color:#1b1205;border-color:var(--ac);font-weight:600}
+input[type=search],select{background:var(--p);border:1px solid var(--line);color:var(--tx);padding:8px 12px;border-radius:10px;font-size:14px}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.news{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin:14px 0 30px}
+.nc{display:flex;flex-direction:column;gap:8px;transition:.15s}.nc:hover{transform:translateY(-3px);border-color:var(--ac)}
+.nc h4{margin:0;font-size:16px;line-height:1.35}.nc p{margin:0;color:#c3d8e0;font-size:14px}
+.meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--mut);align-items:center}
+.cat{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;color:#06131d}
+.btn{display:inline-block;background:var(--ac);color:#1b1205;text-decoration:none;font-weight:600;padding:7px 14px;border-radius:10px;font-size:13px;border:0;cursor:pointer;margin-top:auto;align-self:flex-start}
+.btn.sec{background:var(--p2);color:var(--tx);border:1px solid var(--line)}
+.mapgrid{display:grid;grid-template-columns:1fr 330px;gap:14px;margin:16px 0 30px}
+@media(max-width:960px){.mapgrid{grid-template-columns:1fr}}
+#map{position:relative;height:68vh;min-height:480px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#0a1c28;touch-action:none;cursor:grab;user-select:none}
+#map.drag{cursor:grabbing}
+#tiles,#vec,#mk{position:absolute;inset:0}
+#tiles img{position:absolute;width:256px;height:256px;max-width:none;pointer-events:none}
+#vec{width:100%;height:100%;pointer-events:none}#vec path{pointer-events:visiblePainted;cursor:pointer}
+.mk{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
+.mk .lb{position:absolute;left:32px;top:3px;font-size:11px;white-space:nowrap;background:rgba(6,19,29,.88);padding:1px 6px;border-radius:5px;color:#fff;pointer-events:none}
+.ctl{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:5}
+.ctl button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:rgba(6,19,29,.92);color:#fff;font-size:18px;cursor:pointer}
+.attr{position:absolute;left:6px;bottom:4px;font-size:10px;color:#fff;background:rgba(0,0,0,.5);padding:1px 6px;border-radius:4px;z-index:5}
+#pop{position:absolute;z-index:8;background:#fff;color:#111;border-radius:10px;padding:10px 12px;max-width:280px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none}
+#pop b{display:block;margin-bottom:3px}#pop small{color:#666}
+#dropov{position:absolute;inset:0;z-index:9;background:rgba(40,196,201,.25);border:3px dashed var(--te);display:none;align-items:center;justify-content:center;font-size:20px;font-weight:700;pointer-events:none}
+#map.over #dropov{display:flex}
+.dz{border:2px dashed var(--te);border-radius:14px;padding:18px;text-align:center;background:rgba(40,196,201,.07);cursor:pointer}
+.dz.over{background:rgba(40,196,201,.25)}.dz b{display:block;font-size:15px}.dz span{font-size:12px;color:var(--mut)}
+.ly{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--line);border-radius:10px;margin-top:8px;font-size:13px}
+.ly .dot{width:12px;height:12px;border-radius:50%;flex:none}.ly .i{flex:1;min-width:0}.ly .i div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ly small{color:var(--mut)}
+.ly button{background:var(--p2);border:1px solid var(--line);color:var(--tx);border-radius:8px;cursor:pointer;padding:3px 8px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#12293a;border:1px solid var(--ac);padding:10px 16px;border-radius:10px;z-index:99;display:none;font-size:14px}
+.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
+@media(max-width:700px){.phases{grid-template-columns:1fr}}
+.ph{cursor:pointer;border-top:4px solid var(--c);transition:.15s}.ph.on{background:var(--p2)}.ph small{color:var(--mut)}
+.tl{position:relative;margin:18px 0 30px;padding-left:30px}
+.tl:before{content:"";position:absolute;left:10px;top:0;bottom:0;width:3px;background:var(--line)}
+.ev{position:relative;margin-bottom:14px;cursor:pointer}
+.ev:before{content:"";position:absolute;left:-27px;top:18px;width:15px;height:15px;border-radius:50%;background:var(--c);border:3px solid var(--bg)}
+.ev .d{font-size:12px;color:var(--c);font-weight:700}.ev h4{margin:2px 0}.ev .x{display:none;color:#c8dde5;font-size:14px;margin-top:6px}.ev.open .x{display:block}
+.ev.now:before{box-shadow:0 0 0 5px rgba(255,159,67,.35)}
+.today{border:1px dashed var(--ac);border-radius:10px;padding:6px 12px;margin:0 0 14px;color:var(--ac);font-size:13px}
+.ac{margin-bottom:10px;overflow:hidden;padding:0}
+.ac>button{width:100%;text-align:left;background:transparent;border:0;color:var(--tx);padding:14px 16px;font-size:16px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between}
+.ac .b{display:none;padding:0 16px 14px}.ac.open .b{display:block}.ac.open>button{color:var(--ac)}
+.ac .b li{margin:6px 0}
+.note{font-size:12px;color:var(--mut);border-left:3px solid var(--ac);padding:6px 12px;margin:10px 0}
+footer{border-top:1px solid var(--line);padding:20px 0 40px;color:var(--mut);font-size:12px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap nav">
+<span class="brand">🛢️ Foz do Amazonas</span>
+<button class="on" data-tab="geral">🏠 Visão geral</button>
+<button data-tab="mapa">🗺️ Mapa &amp; KML/KMZ</button>
+<button data-tab="noticias">📰 Notícias</button>
+<button data-tab="linha">⏳ Linha do tempo</button>
+<button data-tab="cond">🌿 Condicionantes</button>
+</div></header>
+
+<main class="wrap">
+<section class="tab" id="tab-geral">
+<div class="hero"><div class="deco">🛢️🌊🪸</div>
+<svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0 60 Q150 20 300 60 T600 60 T900 60 T1200 60 V120 H0Z" fill="#28c4c9"/><path d="M0 85 Q150 50 300 85 T600 85 T900 85 T1200 85 V120 H0Z" fill="#0b3a5a"/></svg>
+<div class="in"><span class="tag">Margem Equatorial · Bloco FZA-M-59 · Oiapoque (AP)</span><h1>Petróleo na Foz do Amazonas</h1>
+<p>Perfuração em águas ultraprofundas, a cerca de 175 km da costa do Amapá: soberania energética, risco ambiental e direitos de povos indígenas e comunidades tradicionais em disputa.</p></div></div>
+<div class="kpis">
+<div class="card kpi"><b>📍 175 km</b><span>do poço Morpho até a costa de Oiapoque (AP); ~500 km da foz do Amazonas</span></div>
+<div class="card kpi"><b>🌊 2.886 m</b><span>de lâmina d'água no poço Morpho</span></div>
+<div class="card kpi"><b>🛢️ 4 poços</b><span>licenciados no bloco: Morpho + 3 contingentes (Manga, Crotalus, PAD Morpho)</span></div>
+<div class="card kpi"><b>📜 LO 1.684/2025</b><span>Licença de Operação do Ibama, emitida em 20/10/2025</span></div>
+<div class="card kpi"><b>🏘️ 17 municípios</b><span>do Pará na área de influência, segundo o MPF</span></div>
+<div class="card kpi"><b>🪶 +9 mil</b><span>indígenas em 65 aldeias e 3 Terras Indígenas no Oiapoque (CCPIO)</span></div>
+</div>
+<div class="grid2">
+<div class="card"><h3>⚡ Argumentos favoráveis</h3><ul class="l">
+<li>🇧🇷 Segurança e soberania energética; reposição de reservas (MME e Petrobras).</li>
+<li>📋 Licença após EIA/RIMA, 3 audiências públicas, 65 reuniões técnicas e Avaliação Pré-Operacional com +400 pessoas (Ibama).</li>
+<li>🐾 Novo Centro de Reabilitação e Despetrolização em Oiapoque, somado ao de Belém, e embarcações dedicadas à fauna.</li>
+<li>💰 Empregos, royalties e infraestrutura para o Amapá.</li></ul></div>
+<div class="card"><h3>⚠️ Argumentos contrários</h3><ul class="l">
+<li>🪸 Risco de vazamento ao Sistema de Recifes da Amazônia, manguezais e à Guiana Francesa.</li>
+<li>💧 Vazamento de +18 mil litros de fluido sintético no início de 2026, citado pelo MPF.</li>
+<li>🪶 Falta de Consulta Prévia, Livre e Informada (OIT 169). A Petrobras diz que não se aplica.</li>
+<li>🌡️ Ampliar a fronteira fóssil em plena crise climática.</li></ul></div>
+</div>
+<div class="grid2">
+<div class="card"><h3>📰 Notícias por tema <small style="color:var(--mut)">(clique para filtrar)</small></h3><div id="catbars"></div></div>
+<div class="card"><h3>⏭️ O que acompanhar</h3><ul class="l">
+<li>⚖️ Decisão do TRF1 sobre os recursos do MPF.</li>
+<li>🛢️ Perfuração dos poços Manga, Crotalus e PAD Morpho.</li>
+<li>🗓️ Cronograma atualizado que a Petrobras deve entregar ao Ibama.</li>
+<li>🦭 Plano de manejo de sirênios (peixe-boi), atualizado a cada 6 meses.</li>
+<li>💹 Avaliação da viabilidade comercial: a produção só viria após anos de estudos.</li></ul></div>
+</div>
+</section>
+
+<section class="tab" id="tab-mapa" hidden>
+<h2>🗺️ Mapa interativo</h2>
+<div class="mapgrid">
+<div id="map">
+<div id="tiles"></div><svg id="vec"></svg><div id="mk"></div>
+<div class="ctl"><button id="zi" title="Aproximar">+</button><button id="zo" title="Afastar">−</button><button id="bs" title="Alternar mapa base">🛰</button></div>
+<div class="attr" id="attr">© Esri</div><div id="pop"></div><div id="dropov">Solte o KML / KMZ aqui</div>
+</div>
+<aside>
+<div class="dz" id="dz"><b>⬆ Arraste seu KML / KMZ aqui</b><span>ou clique para escolher · pode soltar vários arquivos<br>(também funciona soltando sobre o mapa)</span>
+<input type="file" id="fi" accept=".kml,.kmz" multiple hidden></div>
+<h3 style="margin-top:16px">🧭 Mapa base</h3><div class="chips" id="bases"></div>
+<h3 style="margin-top:16px">🗂️ Camadas</h3><div id="layers"></div>
+<h3 style="margin-top:16px">🎯 Ir para</h3>
+<div class="chips" id="goto"></div>
+<h3 style="margin-top:16px">🔖 Legenda</h3>
+<ul class="l" style="list-style:none;padding:0;font-size:13px">
+<li>🛢️ Poço Morpho / bloco FZA-M-59 (posição aproximada)</li>
+<li>✈️ Oiapoque — base aérea de apoio e Centro de Despetrolização</li>
+<li>🐾 Belém — Centro de Despetrolização e base de embarcações</li>
+<li>🏙️ Macapá — capital do Amapá</li>
+<li>🪶 Terras Indígenas Uaçá, Juminã e Galibi (região)</li>
+<li>🪸 Sistema de Recifes da Amazônia (região aproximada)</li>
+<li>🇫🇷 Caiena — risco transfronteiriço</li>
+<li>🏝️ Marajó — rota das embarcações de apoio</li>
+<li>📌 Feições do seu KML/KMZ</li>
+</ul>
+<div class="note">Posições do bloco, dos recifes e das Terras Indígenas são referências aproximadas. Suba o KML/KMZ oficial para ver a área exata.</div>
+</aside></div>
+</section>
+
+<section class="tab" id="tab-noticias" hidden>
+<h2>📰 10 notícias sobre a Foz do Amazonas</h2>
+<div class="tools"><input type="search" id="q" placeholder="Buscar nas notícias…" style="flex:1;min-width:200px"><select id="ord"><option value="desc">Mais recentes</option><option value="asc">Mais antigas</option></select></div>
+<div class="chips" id="catchips"></div>
+<div class="news" id="news"></div>
+</section>
+
+<section class="tab" id="tab-linha" hidden>
+<h2>⏳ Processo histórico</h2>
+<div class="phases" id="phases"></div>
+<div class="tl" id="tl"></div>
+</section>
+
+<section class="tab" id="tab-cond" hidden>
+<h2>🌿 Condicionantes ambientais do Ibama</h2>
+<p style="color:var(--mut)">Exigências sobre a Petrobras na Licença de Operação nº 1.684/2025 e na retificação de set/2026, em quatro eixos.</p>
+<div class="tools" style="margin-bottom:12px"><button class="btn sec" id="expall">Expandir tudo</button></div>
+<div id="acc"></div>
+<div class="note">Observação: a autorização em vigor é uma <b>Licença de Operação</b> (LO nº 1.684/2025, 20/10/2025), e não de Instalação. A sigla APO significa <b>Avaliação Pré-Operacional</b>. Os povos do Oiapoque são Karipuna, Palikur, Galibi Marworno e Galibi Kali'na.</div>
+</section>
+</main>
+
+<footer><div class="wrap">Fontes: Ibama, Ministério do Meio Ambiente, MPF, G1, CNN Brasil, DW e Super (links na aba Notícias). Mapa base: Esri e CARTO. Situação processual sujeita a mudança; dados até 25/11/2026.</div></footer>
+<div id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',3500)}
+
+const CATS={Licenciamento:'#28c4c9',Governo:'#7aa7ff',Judicial:'#ff9f43',Povos:'#ef7b5b',Descoberta:'#f2d04a',Análise:'#8bd36b'};
+const CI={Licenciamento:'📜',Governo:'🏛️',Judicial:'⚖️',Povos:'🪶',Descoberta:'🛢️',Análise:'🔬'};
+const NEWS=[
+{cat:'Povos',date:'2024-11-22',src:'DW',title:'Indígenas cobram voz sobre perfuração na Foz do Amazonas',sum:'O Conselho de Caciques dos Povos Indígenas do Oiapoque (CCPIO) pede consulta com base no seu Protocolo. Temem acidentes e o ruído de aeronaves. A Petrobras respondeu que a lei não obriga a consulta.',url:'https://www.dw.com/pt-br/ind%C3%ADgenas-cobram-voz-no-licenciamento-de-petr%C3%B3leo-na-foz-do-amazonas/a-70845123'},
+{cat:'Povos',date:'2025-04-22',src:'MPF (AP)',title:'MPF recomenda que Ibama e Petrobras revisem estudo de impacto ambiental no Amapá',sum:'Recomenda rever a área de influência do EIA, hoje restrita a Oiapoque, e fazer consultas prévias a povos indígenas e comunidades tradicionais, incluindo pescadores de Macapá e Santana.',url:'https://www.mpf.mp.br/o-mpf/unidades/pr-ap/noticias/mpf-recomenda-que-ibama-e-petrobras-revisem-estudo-de-impacto-ambiental-sobre-exploracao-de-petroleo-no-amapa'},
+{cat:'Licenciamento',date:'2025-10-20',src:'Ibama',title:'Ibama emite licença de operação para perfuração marítima no bloco FZA-M-59',sum:'LO nº 1.684/2025 autoriza o poço Morpho. Após o indeferimento de 2023, o projeto ganhou um novo Centro de Despetrolização em Oiapoque, 3 embarcações offshore e 4 nearshore para fauna oleada.',url:'https://www.gov.br/ibama/pt-br/assuntos/notas/2025/ibama-emite-licenca-de-operacao-para-perfuracao-maritima-no-bloco-fza-m-59-na-bacia-da-foz-do-amazonas'},
+{cat:'Governo',date:'2025-10-20',src:'G1',title:'Petrobras recebe aval do Ibama para perfurar poço exploratório na região da Foz do Amazonas',sum:'O ministro de Minas e Energia, Alexandre Silveira, chamou a exploração da Margem Equatorial de "futuro da soberania energética". A perfuração deveria durar cinco meses e buscava avaliar a existência de petróleo e gás.',url:'https://g1.globo.com/meio-ambiente/noticia/2025/10/20/petrobras.ghtml'},
+{cat:'Judicial',date:'2026-05-13',src:'MPF (AP)',title:'Recurso do MPF contesta licença de petróleo após vazamento em perfuração',sum:'Apelo ao TRF1 cita vazamento de +18 mil litros de fluido sintético no início do ano, modelagem de dispersão de óleo defasada e falta de consulta às comunidades.',url:'https://www.mpf.mp.br/o-mpf/unidades/pr-ap/noticias/recurso-do-mpf-contesta-licenca-de-petroleo-na-foz-do-amazonas-apos-vazamento-em-perfuracao'},
+{cat:'Descoberta',date:'2026-08-17',src:'G1 Amapá',title:'Petrobras amplia ofensiva na Foz do Amazonas e pede licença para mais 3 poços',sum:'Após indícios de petróleo no primeiro poço do bloco 59, a Petrobras protocolou o pedido para a campanha "Amapá Águas Profundas". O Ibama informou que o licenciamento prevê 4 poços: um principal e três contingentes.',url:'https://g1.globo.com/ap/amapa/noticia/2026/08/17/petrobras-amplia-ofensiva-na-foz-do-amazonas-e-pede-ao-ibama-licenca-para-explorar-mais-3-pocos.ghtml'},
+{cat:'Licenciamento',date:'2026-09-04',src:'G1',title:'Ibama autoriza Petrobras a perfurar três novos poços na Foz do Amazonas',sum:'A retificação da LO 1.684 inclui Manga, Crotalus e PAD Morpho. A Petrobras deve atualizar o cronograma em 30 dias, e o MPF cobra explicações sobre as divergências no licenciamento.',url:'https://g1.globo.com/economia/noticia/2026/09/04/ibama-petrobras-amazonas.ghtml'},
+{cat:'Judicial',date:'2026-09-21',src:'CNN Brasil',title:'MPF pede suspensão de perfurações da Petrobras na Margem Equatorial',sum:'O MPF afirma que 17 municípios do Pará estão na área de influência. A Petrobras diz que a fase é exploratória, sem impactos diretos sobre terras indígenas, e que a consulta prévia não se aplica.',url:'https://www.cnnbrasil.com.br/infra/petrobras-nega-impacto-socioambiental-na-foz-do-amazonas-mpf-pede-suspensao-da-perfuracao/'},
+{cat:'Judicial',date:'2026-09-29',src:'MPF (PA)',title:'MPF volta a recorrer a tribunal para suspender perfuração de petróleo na Foz do Amazonas',sum:'Apelação ao TRF1 pede paralisação de qualquer perfuração ou teste no bloco, aponta falhas nas simulações de vazamento e defende que o caso siga na Justiça Federal do Pará.',url:'https://www.mpf.mp.br/o-mpf/unidades/pr-pa/noticias/mpf-volta-a-recorrer-a-tribunal-para-suspender-perfuracao-de-petroleo-na-foz-do-amazonas'},
+{cat:'Análise',date:'2026-11-17',src:'Super',title:'Petróleo na Foz do Amazonas: o que está em jogo com a nova aposta da Petrobras',sum:'Entre agosto e outubro de 2026 a Petrobras encontrou petróleo três vezes no Morpho. Isso ainda não prova viabilidade comercial, e cientistas e lideranças indígenas veem riscos ao Sistema de Recifes da Amazônia.',url:'https://super.abril.com.br/ciencia/petroleo-na-foz-do-amazonas-o-que-esta-em-jogo-com-a-nova-aposta-da-petrobras/'}
+];
+const PH={1:{n:'📜 Fase 1 · Leilão e impasse',s:'2013 – mai/2023',c:'#28c4c9'},2:{n:'🔧 Fase 2 · Adequações e licença',s:'2023 – out/2025',c:'#ff9f43'},3:{n:'🛢️ Fase 3 · Perfuração, descoberta e disputa',s:'2026',c:'#ef5b5b'}};
+const EV=[
+{ph:1,i:'🔨',d:'2013',t:'Bloco FZA-M-59 é arrematado',x:'O bloco da bacia da Foz do Amazonas foi leiloado na 11ª Rodada da ANP, em 2013.'},
+{ph:1,i:'📂',d:'2014',t:'Licenciamento começa no Ibama',x:'A análise ambiental começa sob responsabilidade da BP Energy, segundo o Ministério do Meio Ambiente.'},
+{ph:1,i:'🔄',d:'Dez/2020',t:'Petrobras assume o licenciamento',x:'A Petrobras assume o processo e passa a reformular a estrutura de resposta a emergências.'},
+{ph:1,i:'❌',d:'Mai/2023',t:'Ibama indefere o pedido de licença',x:'A licença é negada. O Ibama cita deficiências na estrutura de resposta a emergências e na proteção da fauna. Começa uma discussão que levou a um projeto bem reforçado.'},
+{ph:2,i:'🪶',d:'Nov/2024',t:'Indígenas cobram consulta',x:'O CCPIO, com 65 caciques, defende seu Protocolo de Consulta. Os povos Karipuna, Palikur, Galibi Marworno e Galibi Kali\'na temem acidentes e o ruído de aeronaves. A Petrobras afirma que a lei não obriga a consulta.'},
+{ph:2,i:'🧾',d:'22/04/2025',t:'MPF recomenda revisar o EIA',x:'O MPF pede revisão da área de influência e consultas a indígenas e comunidades tradicionais, incluindo pescadores de Macapá e Santana.'},
+{ph:2,i:'🧪',d:'2025',t:'Avaliação Pré-Operacional',x:'Simulação de emergência com mais de 400 pessoas da Petrobras e do Ibama. O licenciamento teve EIA/RIMA, 3 audiências públicas e 65 reuniões técnicas em mais de 20 municípios do Pará e do Amapá.'},
+{ph:2,i:'✅',d:'20/10/2025',t:'Ibama emite a Licença de Operação',x:'A LO nº 1.684/2025 autoriza o poço Morpho. A sonda já estava no local e a perfuração estava prevista para cinco meses.'},
+{ph:3,i:'💧',d:'Início de 2026',t:'Vazamento de fluido sintético',x:'O MPF registra vazamento de mais de 18 mil litros de fluido sintético durante a perfuração.'},
+{ph:3,i:'⚖️',d:'12/05/2026',t:'MPF recorre ao TRF1',x:'Pede suspender a licença após a Justiça Federal do Amapá negar a paralisação. Aponta modelagem de óleo defasada e falta de consulta.'},
+{ph:3,i:'🎉',d:'14/08/2026',t:'Petrobras anuncia petróleo no Morpho',x:'A companhia comunica a descoberta de hidrocarbonetos. Isso ainda não indica uma reserva comercialmente viável.'},
+{ph:3,i:'📨',d:'17/08/2026',t:'Pedido de 3 poços e ofício do MPF',x:'A Petrobras pede licença para Manga, Crotalus e PAD Morpho. No mesmo dia, o MPF cobra explicações do Ibama sobre ampliar a LO sem novo licenciamento.'},
+{ph:3,i:'🖊️',d:'03/09/2026',t:'Ibama retifica a licença',x:'Autoriza 3 poços adicionais e a sonda NS-43 (Amaralina Star) condicionada a adequações. Proíbe operar duas unidades ao mesmo tempo.'},
+{ph:3,i:'🏛️',d:'17/09/2026',t:'MPF pede suspensão e mantém caso no Pará',x:'Recorre ao TRF1 contra o envio do processo ao Amapá. Cita 17 municípios paraenses na área de influência.'},
+{ph:3,i:'📑',d:'28/09/2026',t:'Nova apelação ao TRF1',x:'O MPF pede a paralisação de qualquer perfuração ou teste no bloco.'},
+{ph:3,i:'🔬',d:'Ago–out/2026',t:'Três ocorrências de petróleo no Morpho',x:'Segundo a revista Super (17/11), a Petrobras encontrou petróleo três vezes no mesmo poço. Novos poços ainda são necessários para avaliar o potencial econômico.',now:1}
+];
+const COND=[
+{t:'🐾 1. Fauna aquática e resposta a emergências',i:['<b>Centros de Reabilitação e Despetrolização</b> de grande porte em Oiapoque (AP) e em Belém (PA).','<b>Embarcações dedicadas à fauna oleada:</b> 3 offshore e 4 nearshore.','<b>Avaliação Pré-Operacional (APO):</b> simulado prévio e novo exercício de resposta com foco em fauna durante a perfuração.','<b>Peixe-boi (sirênios):</b> plano de ação atualizado a cada 6 meses, uso dos dois centros de fauna e translocação conforme indicação do Ibama. O Ibama registrou que ações de urgência ainda não tinham sido executadas.']},
+{t:'💧 2. Controle ambiental e cascalhos de perfuração',i:['<b>Cascalhos:</b> proibido descartar no mar os da "fase reservatório" e os de reservatórios rasos com óleo confirmado.','<b>Operação:</b> não podem operar diferentes unidades de perfuração ao mesmo tempo.','<b>Nova sonda NS-43:</b> só após adequações para recolhimento de cascalhos e vistoria prévia do Ibama.','<b>Dispersão de óleo:</b> atualização dos modelos de correntes. O MPF pede nova modelagem por entidade independente.']},
+{t:'🤝 3. Comunicação social e povos tradicionais',i:['<b>Comunicação social:</b> canais contínuos de informação às comunidades costeiras sobre etapas e riscos.','<b>Compensação à pesca:</b> cadastro e compensação de pescadores afetados pelo tráfego de apoio.','<b>Povos indígenas e tradicionais:</b> o MPF exige consulta prévia, estudos pesqueiros e redelimitação da área de influência. A Petrobras diz que a consulta não se aplica.']},
+{t:'✈️ 4. Logística e apoio terrestre',i:['<b>Oiapoque:</b> base aérea de apoio. Os voos passam sobre as Terras Indígenas Uaçá, Juminã e Galibi, e o ruído é uma das principais queixas.','<b>Belém:</b> saída das embarcações de apoio, cruzando rotas de pesca do Marajó e do litoral paraense.','<b>Cronograma:</b> a Petrobras deve apresentar o cronograma atualizado ao Ibama em 30 dias após a retificação.']}
+];
+
+$$('[data-tab]').forEach(b=>b.onclick=()=>{$$('[data-tab]').forEach(x=>x.classList.toggle('on',x===b));$$('.tab').forEach(t=>t.hidden=t.id!=='tab-'+b.dataset.tab);if(b.dataset.tab==='mapa')requestAnimationFrame(render);scrollTo(0,0)});
+const goTab=n=>$(`[data-tab=${n}]`).click();
+
+let fc='all';
+const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+function drawCats(){
+ $('#catchips').innerHTML=['all',...Object.keys(CATS)].map(c=>`<span class="chip ${fc===c?'on':''}" data-c="${c}">${c==='all'?'🗂️ Todas':CI[c]+' '+c}</span>`).join('');
+ $$('#catchips .chip').forEach(e=>e.onclick=()=>{fc=e.dataset.c;drawCats();drawNews()});
+}
+function drawNews(){
+ const q=$('#q').value.toLowerCase(),o=$('#ord').value;
+ let l=NEWS.filter(n=>(fc==='all'||n.cat===fc)&&(n.title+n.sum+n.src).toLowerCase().includes(q));
+ l.sort((a,b)=>o==='desc'?b.date.localeCompare(a.date):a.date.localeCompare(b.date));
+ $('#news').innerHTML=l.map(n=>`<article class="card nc"><div class="meta"><span class="cat" style="background:${CATS[n.cat]}">${CI[n.cat]} ${n.cat}</span><span>${fmt(n.date)}</span></div><h4>${esc(n.title)}</h4><p>${esc(n.sum)}</p><div class="meta"><span>📰 ${esc(n.src)}</span></div><a class="btn" href="${n.url}" target="_blank" rel="noopener noreferrer">Ler matéria completa ↗</a></article>`).join('')||'<p style="color:var(--mut)">Nenhuma notícia encontrada.</p>';
+}
+$('#q').oninput=drawNews;$('#ord').onchange=drawNews;
+const mx=Math.max(...Object.keys(CATS).map(c=>NEWS.filter(n=>n.cat===c).length));
+$('#catbars').innerHTML=Object.keys(CATS).map(c=>{const k=NEWS.filter(n=>n.cat===c).length;return `<div class="bar" data-c="${c}"><span class="n">${CI[c]} ${c}</span><span class="t"><i style="width:${k/mx*100}%;background:${CATS[c]}"></i></span><b>${k}</b></div>`}).join('');
+$$('#catbars .bar').forEach(e=>e.onclick=()=>{fc=e.dataset.c;drawCats();drawNews();goTab('noticias')});
+drawCats();drawNews();
+
+let fp=0;
+function drawTL(){
+ $('#phases').innerHTML=Object.entries(PH).map(([k,p])=>`<div class="card ph ${fp==k?'on':''}" style="--c:${p.c}" data-p="${k}"><b>${p.n}</b><br><small>${p.s}</small></div>`).join('');
+ $$('.ph').forEach(e=>e.onclick=()=>{fp=fp==e.dataset.p?0:+e.dataset.p;drawTL()});
+ let h='';EV.filter(e=>!fp||e.ph===fp).forEach(e=>{
+  h+=`<div class="ev card ${e.now?'now':''}" style="--c:${PH[e.ph].c}"><div class="d">${e.d}</div><h4>${e.i||''} ${e.t}</h4><div class="x">${e.x}</div></div>`;
+  if(e.now)h+=`<div class="today">📍 Hoje (25/11/2026): não localizei decisão do TRF1 sobre os recursos do MPF; os poços adicionais seguem em planejamento.</div>`;
+ });
+ $('#tl').innerHTML=h;$$('.ev').forEach(e=>e.onclick=()=>e.classList.toggle('open'));
+ $$('.ev')[0]?.classList.add('open');
+}
+drawTL();
+
+$('#acc').innerHTML=COND.map((c,i)=>`<div class="card ac ${i==0?'open':''}"><button>${c.t}<span>▾</span></button><div class="b"><ul class="l">${c.i.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`).join('');
+$$('.ac>button').forEach(b=>b.onclick=()=>b.parentElement.classList.toggle('open'));
+$('#expall').onclick=()=>{const all=$$('.ac').every(a=>a.classList.contains('open'));$$('.ac').forEach(a=>a.classList.toggle('open',!all));$('#expall').textContent=all?'Expandir tudo':'Recolher tudo'};
+
+/* MAPA */
+const R=256,mapEl=$('#map'),tilesEl=$('#tiles'),vec=$('#vec'),mk=$('#mk'),pop=$('#pop');
+const proj=(lat,lng,z)=>{const s=R*2**z,sn=Math.sin(lat*Math.PI/180);return{x:(lng+180)/360*s,y:(0.5-Math.log((1+sn)/(1-sn))/(4*Math.PI))*s}};
+const unproj=(x,y,z)=>{const s=R*2**z,n=Math.PI-2*Math.PI*y/s;return{lat:180/Math.PI*Math.atan(.5*(Math.exp(n)-Math.exp(-n))),lng:x/s*360-180}};
+const view={lat:2.5,lng:-50.5,z:6};let base='sat';const tcache=new Map();
+const BASES={
+ sat:{n:'Satélite (Esri)',a:'Imagens © Esri, Maxar, Earthstar Geographics',u:(z,x,y)=>`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`},
+ rua:{n:'Ruas (Esri)',a:'© Esri, HERE, Garmin, OpenStreetMap contributors',u:(z,x,y)=>`https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${y}/${x}`},
+ topo:{n:'Topográfico (Esri)',a:'© Esri, USGS, NOAA',u:(z,x,y)=>`https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}`},
+ claro:{n:'Claro (CARTO)',a:'© CARTO © OpenStreetMap contributors',u:(z,x,y)=>`https://${'abcd'[(x+y)%4]}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`}
+};
+const terr={};
+function tileErr(){terr[base]=(terr[base]||0)+1;if(terr[base]===6)toast('Este mapa base falhou ao carregar. Tente outro em "Mapa base".')}
+const COLORS=['#ef5b5b','#28c4c9','#ff9f43','#7aa7ff','#c58bff','#8bd36b'];
+const BLOCO=[5.0,-50.0],OIAP=[3.8419,-51.8333],MACAPA=[0.0349,-51.0694],BELEM=[-1.4558,-48.5044],CAIENA=[4.9372,-52.326];
+const layers=[{id:0,name:'Referências regionais',color:'#ff9f43',visible:true,builtin:true,feats:[
+ {t:'point',ic:'🛢️',n:'Bloco FZA-M-59 / poço Morpho (aprox.)',d:'Cerca de 175 km da costa de Oiapoque e ~500 km da foz do Amazonas, a 2.886 m de lâmina d\'água. Posição aproximada: use o KML oficial para a área exata.',c:[BLOCO]},
+ {t:'point',ic:'✈️',n:'Oiapoque',d:'Base aérea de apoio da Petrobras e novo Centro de Reabilitação e Despetrolização de fauna. Os voos cruzam as Terras Indígenas.',c:[OIAP]},
+ {t:'point',ic:'🏙️',n:'Macapá',d:'Capital do Amapá. O MPF defende incluir pescadores de Macapá e Santana na área de influência.',c:[MACAPA]},
+ {t:'point',ic:'🐾',n:'Belém',d:'Centro de Despetrolização de fauna e saída das embarcações de apoio que cruzam rotas de pesca do litoral paraense.',c:[BELEM]},
+ {t:'point',ic:'🪶',n:'Terras Indígenas Uaçá, Juminã e Galibi (região)',d:'Povos Karipuna, Palikur, Galibi Marworno e Galibi Kali\'na: +9 mil pessoas em 65 aldeias (CCPIO). Posição aproximada.',c:[[3.7,-51.5]]},
+ {t:'point',ic:'🪸',n:'Sistema de Recifes da Amazônia (região aprox.)',d:'Ecossistema de recifes sob a pluma do Amazonas, citado por cientistas e pelo MPF como vulnerável a vazamentos. Posição aproximada.',c:[[3.0,-49.2]]},
+ {t:'point',ic:'🇫🇷',n:'Caiena (Guiana Francesa)',d:'Estudos de correntes indicam risco transfronteiriço em caso de vazamento.',c:[CAIENA]},
+ {t:'point',ic:'🏝️',n:'Ilha do Marajó',d:'As embarcações de apoio saídas de Belém contornam o arquipélago e o litoral nordeste do Pará.',c:[[-1.0,-49.6]]}
+]}];
+let nid=1;
+function size(){return{W:mapEl.clientWidth,H:mapEl.clientHeight}}
+function render(){
+ const{W,H}=size();if(!W)return;
+ const c=proj(view.lat,view.lng,view.z),n=2**view.z,need=new Set();
+ const x0=Math.floor((c.x-W/2)/R),x1=Math.floor((c.x+W/2)/R),y0=Math.max(0,Math.floor((c.y-H/2)/R)),y1=Math.min(n-1,Math.floor((c.y+H/2)/R));
+ for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){
+  const wx=((tx%n)+n)%n,k=`${base}/${view.z}/${tx}/${ty}`;need.add(k);
+  let im=tcache.get(k);if(!im){im=new Image();im.onerror=tileErr;im.src=BASES[base].u(view.z,wx,ty);im.draggable=false;tilesEl.appendChild(im);tcache.set(k,im)}
+  im.style.left=(tx*R-(c.x-W/2))+'px';im.style.top=(ty*R-(c.y-H/2))+'px';
+ }
+ for(const[k,im]of tcache)if(!need.has(k)){im.remove();tcache.delete(k)}
+ const sp=(la,lo)=>{const p=proj(la,lo,view.z);return[p.x-c.x+W/2,p.y-c.y+H/2]};
+ let sv='',mh='';
+ layers.forEach(L=>{if(!L.visible)return;L.feats.forEach((f,fi)=>{
+  const da=`data-l="${L.id}" data-f="${fi}"`;
+  if(f.t==='point'){const[x,y]=sp(...f.c[0]);if(x<-40||y<-40||x>W+40||y>H+40)return;
+   mh+=`<div class="mk" ${da} style="left:${x}px;top:${y}px;background:${L.color}">${f.ic||'📌'}<span class="lb">${esc(f.n)}</span></div>`}
+  else if(f.t==='line'){sv+=`<path ${da} d="${f.c.map((p,i)=>(i?'L':'M')+sp(...p).map(v=>v.toFixed(1)).join(' ')).join('')}" fill="none" stroke="${L.color}" stroke-width="3" stroke-linecap="round" opacity=".95"/>`}
+  else{sv+=`<path ${da} fill-rule="evenodd" d="${f.rings.map(r=>r.map((p,i)=>(i?'L':'M')+sp(...p).map(v=>v.toFixed(1)).join(' ')).join('')+'Z').join('')}" fill="${L.color}" fill-opacity=".3" stroke="${L.color}" stroke-width="2.5"/>`}
+ })});
+ vec.innerHTML=sv;mk.innerHTML=mh;$('#attr').textContent=BASES[base].a;
+}
+function setZoom(z,ax,ay){
+ z=Math.max(3,Math.min(18,z));if(z===view.z)return;const{W,H}=size();ax??=W/2;ay??=H/2;
+ const c=proj(view.lat,view.lng,view.z),g=unproj(c.x+ax-W/2,c.y+ay-H/2,view.z);
+ view.z=z;const p=proj(g.lat,g.lng,z),nc=unproj(p.x-(ax-W/2),p.y-(ay-H/2),z);view.lat=nc.lat;view.lng=nc.lng;render();
+}
+function fit(pts){
+ const{W,H}=size();const la=pts.map(p=>p[0]),lo=pts.map(p=>p[1]);
+ const a=Math.min(...la),b=Math.max(...la),c=Math.min(...lo),d=Math.max(...lo);let z=17;
+ for(;z>3;z--){const p1=proj(b,c,z),p2=proj(a,d,z);if(p2.x-p1.x<W-100&&p2.y-p1.y<H-100)break}
+ const m=unproj((proj(b,c,z).x+proj(a,d,z).x)/2,(proj(b,c,z).y+proj(a,d,z).y)/2,z);view.lat=m.lat;view.lng=m.lng;view.z=z;render();
+}
+new ResizeObserver(render).observe(mapEl);
+let dr=null;
+mapEl.addEventListener('pointerdown',e=>{if(e.target.closest('.ctl'))return;dr={x:e.clientX,y:e.clientY,m:0,t:e.target};mapEl.setPointerCapture(e.pointerId);mapEl.classList.add('drag')});
+mapEl.addEventListener('pointermove',e=>{if(!dr)return;const dx=e.clientX-dr.x,dy=e.clientY-dr.y;dr.m+=Math.abs(dx)+Math.abs(dy);dr.x=e.clientX;dr.y=e.clientY;
+ const c=proj(view.lat,view.lng,view.z),n=unproj(c.x-dx,c.y-dy,view.z);view.lat=Math.max(-85,Math.min(85,n.lat));view.lng=n.lng;pop.style.display='none';render()});
+mapEl.addEventListener('pointerup',e=>{mapEl.classList.remove('drag');if(dr&&dr.m<6){const t=dr.t.closest?.('[data-f]');if(t)showPop(t,e);else pop.style.display='none'}dr=null});
+let wl=0;mapEl.addEventListener('wheel',e=>{e.preventDefault();if(Date.now()-wl<140)return;wl=Date.now();const r=mapEl.getBoundingClientRect();setZoom(view.z+(e.deltaY<0?1:-1),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+mapEl.addEventListener('dblclick',e=>{const r=mapEl.getBoundingClientRect();setZoom(view.z+1,e.clientX-r.left,e.clientY-r.top)});
+$('#zi').onclick=()=>setZoom(view.z+1);$('#zo').onclick=()=>setZoom(view.z-1);
+function drawBase(){
+ $('#bases').innerHTML=Object.entries(BASES).map(([k,b])=>`<span class="chip ${base===k?'on':''}" data-b="${k}">${b.n}</span>`).join('');
+ $$('[data-b]').forEach(e=>e.onclick=()=>{base=e.dataset.b;drawBase();render()});
+}
+$('#bs').onclick=()=>{const ks=Object.keys(BASES);base=ks[(ks.indexOf(base)+1)%ks.length];drawBase();render();toast('Mapa base: '+BASES[base].n)};
+drawBase();
+function plain(h){return new DOMParser().parseFromString(h||'','text/html').body.textContent.trim().slice(0,420)}
+function showPop(t,e){
+ const L=layers.find(l=>l.id==t.dataset.l),f=L.feats[t.dataset.f],r=mapEl.getBoundingClientRect();
+ pop.innerHTML=`<b>${esc(f.n||'Sem nome')}</b>${f.d?`<div>${esc(plain(f.d))}</div>`:''}<small>${esc(L.name)}</small>`;
+ pop.style.display='block';pop.style.left=Math.min(e.clientX-r.left+10,r.width-300)+'px';pop.style.top=Math.max(8,Math.min(e.clientY-r.top+10,r.height-140))+'px';
+}
+const allPts=L=>L.feats.flatMap(f=>f.t==='poly'?f.rings.flat():f.c);
+function stats(feats){
+ let a=0,l=0,p=0;const hv=(A,B)=>{const r=6371,d=Math.PI/180,x=Math.sin((B[0]-A[0])*d/2)**2+Math.cos(A[0]*d)*Math.cos(B[0]*d)*Math.sin((B[1]-A[1])*d/2)**2;return 2*r*Math.asin(Math.sqrt(x))};
+ const ar=r=>{const l0=r.reduce((s,q)=>s+q[0],0)/r.length,k=Math.cos(l0*Math.PI/180)*111.32,pts=r.map(q=>[q[1]*k,q[0]*110.57]);let s=0;for(let i=0;i<pts.length;i++){const j=(i+1)%pts.length;s+=pts[i][0]*pts[j][1]-pts[j][0]*pts[i][1]}return Math.abs(s/2)};
+ feats.forEach(f=>{if(f.t==='point')p++;else if(f.t==='line')for(let i=1;i<f.c.length;i++)l+=hv(f.c[i-1],f.c[i]);else f.rings.forEach((r,i)=>a+=(i?-1:1)*ar(r))});
+ return`${feats.length} feições`+(a?` · ${a.toLocaleString('pt-BR',{maximumFractionDigits:2})} km²`:'')+(l?` · ${l.toLocaleString('pt-BR',{maximumFractionDigits:1})} km`:'')+(p?` · ${p} pontos`:'');
+}
+function drawLayers(){
+ $('#layers').innerHTML=layers.map(L=>`<div class="ly"><input type="checkbox" data-v="${L.id}" ${L.visible?'checked':''}><span class="dot" style="background:${L.color}"></span><div class="i"><div>${esc(L.name)}</div><small>${stats(L.feats)}</small></div><button data-z="${L.id}" title="Ir para">⌖</button>${L.builtin?'':`<button data-x="${L.id}" title="Remover">✕</button>`}</div>`).join('');
+ $$('[data-v]').forEach(e=>e.onchange=()=>{layers.find(l=>l.id==e.dataset.v).visible=e.checked;render()});
+ $$('[data-z]').forEach(e=>e.onclick=()=>fit(allPts(layers.find(l=>l.id==e.dataset.z))));
+ $$('[data-x]').forEach(e=>e.onclick=()=>{layers.splice(layers.findIndex(l=>l.id==e.dataset.x),1);drawLayers();render()});
+}
+const GO=[['Bloco e Oiapoque',[BLOCO,OIAP,MACAPA]],['Costa do Amapá ao Pará',[OIAP,BELEM,BLOCO]],['Guiana Francesa',[CAIENA,BLOCO,OIAP]]];
+$('#goto').innerHTML=GO.map((g,i)=>`<span class="chip" data-g="${i}">${g[0]}</span>`).join('');
+$$('[data-g]').forEach(e=>e.onclick=()=>fit(GO[e.dataset.g][1]));
+
+function parseKML(text){
+ const doc=new DOMParser().parseFromString(text,'text/xml');if(doc.querySelector('parsererror'))throw new Error('KML inválido');
+ const co=s=>(s||'').trim().split(/\s+/).map(t=>t.split(',').map(Number)).filter(a=>a.length>=2&&!isNaN(a[0])&&!isNaN(a[1])).map(a=>[a[1],a[0]]);
+ const ch=(el,n)=>[...el.children].find(c=>c.localName===n);
+ const out=[];
+ [...doc.getElementsByTagName('Placemark')].forEach(pm=>{
+  const n=ch(pm,'name')?.textContent||'',d=ch(pm,'description')?.textContent||'';
+  [...pm.getElementsByTagName('Point')].forEach(p=>{const c=co(p.getElementsByTagName('coordinates')[0]?.textContent);if(c.length)out.push({t:'point',n,d,c:[c[0]]})});
+  [...pm.getElementsByTagName('LineString')].forEach(p=>{const c=co(p.getElementsByTagName('coordinates')[0]?.textContent);if(c.length>1)out.push({t:'line',n,d,c})});
+  [...pm.getElementsByTagName('Polygon')].forEach(p=>{
+   const rings=[];const ob=p.getElementsByTagName('outerBoundaryIs')[0];
+   if(ob){const c=co(ob.getElementsByTagName('coordinates')[0]?.textContent);if(c.length>2)rings.push(c)}
+   [...p.getElementsByTagName('innerBoundaryIs')].forEach(ib=>{const c=co(ib.getElementsByTagName('coordinates')[0]?.textContent);if(c.length>2)rings.push(c)});
+   if(rings.length)out.push({t:'poly',n,d,rings});
+  });
+ });
+ return out;
+}
+async function unzip(buf){
+ const dv=new DataView(buf),u8=new Uint8Array(buf);let e=-1;
+ for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65600);i--)if(dv.getUint32(i,true)===0x06054b50){e=i;break}
+ if(e<0)throw new Error('KMZ inválido');
+ const tot=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const ents=[];
+ for(let i=0;i<tot;i++){
+  if(dv.getUint32(p,true)!==0x02014b50)break;
+  const m=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+  ents.push({m,cs,lo,name:new TextDecoder().decode(u8.subarray(p+46,p+46+nl))});p+=46+nl+el+cl;
+ }
+ const k=ents.find(x=>/(^|\/)doc\.kml$/i.test(x.name))||ents.find(x=>/\.kml$/i.test(x.name));
+ if(!k)throw new Error('Nenhum .kml dentro do KMZ');
+ const nl=dv.getUint16(k.lo+26,true),el=dv.getUint16(k.lo+28,true),s=k.lo+30+nl+el,data=u8.subarray(s,s+k.cs);
+ if(k.m===0)return new TextDecoder().decode(data);
+ if(k.m!==8)throw new Error('Compressão de KMZ não suportada');
+ const ab=await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer();
+ return new TextDecoder().decode(ab);
+}
+async function loadFile(f){
+ try{
+  const text=/\.kmz$/i.test(f.name)?await unzip(await f.arrayBuffer()):await f.text();
+  addLayer(f.name,parseKML(text));
+ }catch(err){toast('Erro em '+f.name+': '+err.message)}
+}
+function addLayer(name,feats){
+ if(!feats.length){toast('Nenhuma feição (ponto/linha/polígono) encontrada em '+name);return}
+ const L={id:nid++,name,color:COLORS[(nid-2)%COLORS.length],visible:true,feats};layers.push(L);drawLayers();fit(allPts(L));toast('✔ '+name+' carregado: '+feats.length+' feições');
+}
+async function handleFiles(fl){const arr=[...fl].filter(f=>/\.(kml|kmz)$/i.test(f.name));if(!arr.length){toast('Envie arquivos .kml ou .kmz');return}for(const f of arr)await loadFile(f)}
+const dz=$('#dz'),fi=$('#fi');
+dz.onclick=()=>fi.click();fi.onchange=()=>{handleFiles(fi.files);fi.value=''};
+['dragenter','dragover'].forEach(ev=>{
+ window.addEventListener(ev,e=>{e.preventDefault();if(e.dataTransfer)e.dataTransfer.dropEffect='copy'});
+ dz.addEventListener(ev,()=>dz.classList.add('over'));mapEl.addEventListener(ev,()=>mapEl.classList.add('over'));
+});
+['dragleave','drop'].forEach(ev=>{dz.addEventListener(ev,()=>dz.classList.remove('over'));mapEl.addEventListener(ev,()=>mapEl.classList.remove('over'))});
+window.addEventListener('drop',e=>{e.preventDefault()});
+dz.addEventListener('drop',e=>{e.preventDefault();handleFiles(e.dataTransfer.files)});
+mapEl.addEventListener('drop',e=>{e.preventDefault();handleFiles(e.dataTransfer.files)});
+$$('.ctl').forEach(e=>e.addEventListener('pointerdown',ev=>ev.stopPropagation()));
+drawLayers();
+goTab('geral');
+setTimeout(()=>fit(GO[0][1]),50);
+</script>
+</body>
+</html>
